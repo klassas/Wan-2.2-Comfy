@@ -81,14 +81,16 @@ RUN git clone ${MMAUDIO_REPO} ${COMFY_DIR}/custom_nodes/ComfyUI-MMAudio && \
     grep -q '"VHS_SplitImages"' ${COMFY_DIR}/custom_nodes/ComfyUI-VideoHelperSuite/videohelpersuite/nodes.py
 
 # Custom-node dependencies. ComfyUI-MMAudio's requirements as-is. For
-# VideoHelperSuite only imageio-ffmpeg is installed: its other
-# requirement, opencv-python, would shadow the opencv build ComfyUI
-# itself installed (and needs system libGL this image does not carry);
-# cv2 comes from ComfyUI's own dependency set.
+# VideoHelperSuite: imageio-ffmpeg plus opencv-python-headless.
+# cv2 is NOT part of ComfyUI's own dependency set (the first Wan test
+# on 2026-11-26 failed with "No module named 'cv2'" and VHS never
+# loaded, so VHS_VideoCombine was missing at prompt validation); the
+# headless wheel provides cv2 without the system libGL that the full
+# opencv-python build needs and this image does not carry.
 RUN python -m pip install --no-cache-dir --timeout 300 --retries 5 \
         -r ${COMFY_DIR}/custom_nodes/ComfyUI-MMAudio/requirements.txt && \
     python -m pip install --no-cache-dir --timeout 180 --retries 5 \
-        imageio-ffmpeg
+        imageio-ffmpeg opencv-python-headless
 
 # Bake the BigVGAN vocoder into the image. ComfyUI-MMAudio's
 # FeatureUtilsLoader (44k mode) otherwise downloads
